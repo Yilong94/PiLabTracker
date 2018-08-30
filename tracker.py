@@ -1,5 +1,5 @@
-#from flask import Flask, render_template
-#from flask_socketio import SocketIO, emit
+from flask import Flask, render_template
+from flask_socketio import SocketIO, emit
 #from threading import Lock 
 #from database import getLogCSV, pushLogCSV
 
@@ -12,7 +12,8 @@ import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 import numpy as np
-import math 
+import math
+import os
 from database.DatabaseConnector import DatabaseConnector
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
@@ -21,8 +22,8 @@ from database.DatabaseConnector import DatabaseConnector
 
 async_mode = None
 
-#app = Flask(__name__)
-#socketio = SocketIO(app, async_mode = async_mode)
+app = Flask(__name__)
+socketio = SocketIO(app, async_mode = async_mode)
 #thread = None
 #thread_lock = Lock()
 
@@ -285,6 +286,6 @@ if __name__ == '__main__':
     t.daemon = True
     t.start()
     #print ("stating database")
-    #socketio.run(app, debug=False)
+    socketio.run(app, debug=False)
 
     
