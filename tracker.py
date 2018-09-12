@@ -32,7 +32,7 @@ username = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
 host = 'pilab.ct0oc3ontoyk.ap-southeast-1.rds.amazonaws.com'
 database = 'pilab'
-csvfile = "database/log.csv"
+csvfile = os.getenv('CSVFILE')
 db_connector = DatabaseConnector(username, password, host, database, csvfile)
 
 #functionality 1: continuously send data to client on current count
@@ -153,11 +153,27 @@ def humancounter():
         # resize the frame, convert it to grayscale, and blur it
         frame = imutils.resize(frame, width=500)
         frameDelta = fgbg.apply(frame)
+        
+        #if datetime.now().second==0 or datetime.now().second==30:
+        #    np.set_printoptions(threshold=np.nan)
+        #    print(frameDelta)
+        #    print(type(frameDelta))
+        #    print(frameDelta.shape)
+        #    time.sleep(1)
+        
+        # frameDelta is of class 'numpy.ndarray'
+        # returns an array of the dim of the image
+        # shape: (375, 500)
 
         thresh = cv2.threshold(frameDelta, 245, 255, cv2.THRESH_BINARY)[1]
         thresh = cv2.dilate(thresh, None, iterations=2)
         (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
+        
+        
+        #if datetime.now().second==0 or datetime.now().second==30:
+        #    print(cnts)
+        #    time.sleep(1)
         _box = []
         for c in cnts:
             c = cv2.convexHull(c)
@@ -183,6 +199,10 @@ def humancounter():
             _point.append(p)
         text = len(_box)
         ## determine person enter or exit 
+        #if datetime.now().second==0 or datetime.now().second==30:
+        #    print(_point)
+        #    time.sleep(1)
+        
         in_frame = len(_point)
         if in_frame > cam_prev_count:
             extra = []
@@ -199,8 +219,8 @@ def humancounter():
                 #if e[1]>250 or (e[0]>400 and e[1]>150):
                  #   exit =exit+1
                 if e[1]<200:
-                    enter = enter +1
-                    count += 1
+                    enter+=1
+                    count+= 1
             #cam_prev_count = in_frame
             #prev_point = _point
         if in_frame < cam_prev_count:
@@ -224,8 +244,8 @@ def humancounter():
                 #    exit =exit -1
                 #print ("missing")
                 if m[1]<200:
-                    enter = enter -1
-                    count = count -1
+                    enter-=1
+                    count-=1
             #cam_prev_count = in_frame
             #prev_point = _point
             #count += enter-exit
@@ -265,16 +285,16 @@ def humancounter():
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
             break
-        if (datetime.now().strftime('%H') == '3') and (datetime.now().strftime('%M') == '00'):
-                #count will reset every day at 3am
-                count = 0
+        if (datetime.now().hour == 3) and (datetime.now().minute == 0):
+            #count will reset every day at 3am
+            count = 0
         if key == ord("r"):
-                count = 0
+            count = 0
         #pushs data into the database at every minute
-        if datetime.now().strftime('%S') == '00' and datetime.now().strftime('%M')!=inputtime:
+        if datetime.now().second == 0 and datetime.now().minute!=inputtime:
             #pushLogCSV.updateCount(databaseFilepath,count, datetime.now())
             db_connector.pushLog(count, datetime.now())
-            inputtime = datetime.now().strftime('%M')
+            inputtime = datetime.now().minute
     # cleanup the camera and close any open windows
     ##camera.release()
     cv2.destroyAllWindows()
